@@ -11,6 +11,6 @@
 
 
 int main(void){
-	
+	printf("size: %ld\n", sizeof(struct String));
 	return 0;
 }
