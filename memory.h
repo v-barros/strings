@@ -9,4 +9,5 @@
 
 void * alloc(const void * type);
 
+void * delete(void * item);
 #endif /*MEMORY_H_*/

@@ -1,5 +1,27 @@
 /*
- * stringtable.h
+ *MIT License
+ *
+ *Copyright (c) 2021 v-barros
+ *
+ *Permission is hereby granted, free of charge, to any person obtaining a copy
+ *of this software and associated documentation files (the "Software"), to deal
+ *in the Software without restriction, including without limitation the rights
+ *to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *copies of the Software, and to permit persons to whom the Software is
+ *furnished to do so, subject to the following conditions:
+ *
+ *The above copyright notice and this permission notice shall be included in all
+ *copies or substantial portions of the Software.
+ *
+ *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *SOFTWARE.
+ *
+ *stringtable.h
  *
  *  Created on: 2021-05-29
  *      Author: @v-barros
@@ -8,14 +30,17 @@
 #ifndef STRINGTABLE_H_
 #define STRINGTABLE_H_
 #define TABLE_SIZE 10
+#define REHASH_MULTIPLE 60
+#define REHASH_COUNT 100
 #include <stdint.h>
 #include <stdbool.h>
 #include "string.h"
 
 struct Table{
-	uint32_t table_size;
-	uint32_t number_of_entries;
-	uint32_t rehash_multiple;
+	int table_size;
+	int number_of_entries;
+	int rehash_multiple;
+	int rehash_count;
 	const struct String * table[TABLE_SIZE];
 };
 extern const void * Table;
@@ -23,7 +48,7 @@ extern const void * Table;
 /**
  *  Alloc a new table struct with default size defined by TABLE_SIZE macro and return its pointer
  * */
-struct Table * create_table();
+struct Table * new_table();
 
 /**
  * Given a String, try to insert a new structure on the table
@@ -31,7 +56,7 @@ struct Table * create_table();
  * a pointer to the interned String.
  * If it doesnt, insert the string on the table and returns a pointer to the the interned String.
  * */
-struct String * put(struct Table * table, struct String * string);
+struct String * new_table_entry(struct Table * table, struct String * string);
 
 /**
  * Return the number of entries on the table(number of active keys)
@@ -52,7 +77,7 @@ struct String * lookup_and_get_previous(struct String * string, const char * str
  * Checks wheter a String exists or not on a bucket, if it does, then returns the its pointer,
  * else, NULL.
  * */
-struct String * lookup(struct String * string, const char * str, unsigned long full_hash);
+struct String * lookup(struct Table * table, int index , const char * name, int len,unsigned long full_hash);
 
 /**
  * Return the table size(number of buckets)
