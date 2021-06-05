@@ -28,18 +28,29 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "stringtable.h"
 #include "string.h"
-#include <string.h>
+
+//struct String * literal(struct Table * table,const char * str);
 
 
 int main(void){
-//	struct String * string = new_string("a");
-	char *a = "teste";
-	printf("size: %ld\n", sizeof(struct String));
+	struct Table * table = new_table();
+	struct String * string = literal(table,"myString");
 	
-	printf("%ld %d\n",strlen(a)	,is_ascii(a,strlen(a)));
+	//printf("\ntext: %s reference count: %d address: 0x%p \n",get_text(string),ref_count(string),string);
 	
+	struct String * string2 = literal(table,"myString");
+	printf("\ntext: %s reference count: %d address: 0x%p number of entries: %d\n",get_text(string2),ref_count(string2),string2,number_of_entries(table));
+	struct String * string3 = literal(table,"aaa");
+	struct String * string4 = literal(table,"str");
+	struct String * string5 = literal(table,"strin");
+
+	
+	printf("\ntext: %s reference count: %d address: 0x%p number of entries: %d\n",get_text(string3),ref_count(string3),string3,number_of_entries(table));
+	
+	debug_table(table);
 	return 1;
 
 }

@@ -29,7 +29,7 @@
 
 #ifndef STRINGTABLE_H_
 #define STRINGTABLE_H_
-#define TABLE_SIZE 10
+#define TABLE_SIZE 3
 #define REHASH_MULTIPLE 60
 #define REHASH_COUNT 100
 #include <stdint.h>
@@ -56,8 +56,7 @@ struct Table * new_table();
  * a pointer to the interned String.
  * If it doesnt, insert the string on the table and returns a pointer to the the interned String.
  * */
-struct String * new_table_entry(struct Table * table, struct String * string);
-
+struct String * basic_add(struct Table * table, const char * str,unsigned short str_len );
 /**
  * Return the number of entries on the table(number of active keys)
  * */
@@ -74,11 +73,10 @@ struct String * lookup_and_get_previous(struct String * string, const char * str
 
 /**
  * Must receive the first String of a bucket in table->table.
- * Checks wheter a String exists or not on a bucket, if it does, then returns the its pointer,
+ * Checks wheter a String exists or not on a bucket, if it does, then returns its pointer,
  * else, NULL.
  * */
-struct String * lookup(struct Table * table, int index , const char * name, int len,unsigned long full_hash);
-
+struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash);
 /**
  * Return the table size(number of buckets)
  * */
@@ -103,4 +101,9 @@ bool needs_rehashing(int count);
  * */
 void rehash_table();
 
+bool is_interned(struct String * string);
+
+bool is_empty_bucket(struct Table * table, int index);
+
+void inc_num_of_entries(struct Table * table);
 #endif /* STRINGTABLE_H_ */

@@ -10,7 +10,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include "string.h"
-#include "stringtable.h"
 #include "memory.h"
 
 static const size_t _String = sizeof(struct String);
@@ -31,14 +30,14 @@ unsigned long hash_code(const char * str){
 /**
  * String name = "foo"; 
  * */
-struct String * literal(struct Table * table,const char * str){
-    assert(str);
-    assert(is_ascii(str,strlen(str)));
-    assert(strlen(str)<max_text_length);
-    struct String * string;
-
-    string = put(string,str);
-    return string;
+struct String * literal(struct Table *table,const char * str){
+    unsigned long str_len;
+    assert(str && table);
+    str_len = strlen(str);
+    assert(is_ascii(str,str_len));
+    assert(str_len<max_text_length);
+    
+    return basic_add(table, str,str_len);    
 }
 
 bool is_ascii(const char * str, int len){
@@ -49,10 +48,93 @@ bool is_ascii(const char * str, int len){
     return true;
 }
 
-void * setText(struct String * string, const char * text){
-    assert(text);
+void * set_text(struct String * string, const char * text, unsigned short text_len){
+    assert(!string->text);/*immutable, right?*/
     string->text=text;
+    string->length = text_len;
+}
+
+
+
+struct String * new_string(const char * str);
+
+struct String * intern(struct String * string);
+
+const char * get_text(struct String * string){
+    assert(string);
+    return string->text;
+}
+
+void delete_(struct String * string);
+
+bool equals_str(struct String * a,struct String * b){
+    if(a==b)
+        return true;
     
+    return equals(get_text(a),length(a),
+                  get_text(b),length(b));
+}
+
+unsigned short length(struct String * string){
+    assert(string);
+    return string->length;
+}
+
+bool equals_char(struct String * a, const char * b){
+    assert(a);
+    assert(b);
+    return equals(get_text(a),length(a),
+                  b,strlen(b));
+}
+
+bool equals_char_l(struct String * a, const char * b, unsigned short len_b){
+    return equals(get_text(a),length(a),
+                  b,len_b);
+}
+
+bool equals(const char * a, unsigned short len_a,
+            const char * b, unsigned short len_b){
+    
+    if(len_a!=len_b)
+        return false;
+    int i = len_a;
+    while(i>=0){
+        if(a[i]!=b[i])
+            return false;
+        i--;
+    }
+    return true;
+}
+
+struct String * create_string(const char * str, unsigned short str_len, unsigned long hash){
+    struct String * string = alloc(String);
+    char * text = (char * ) malloc (str_len+1);
+    strcpy(text,str);
+    set_text(string,text,str_len);
+    set_hash(string,hash);
+    return string;
+}
+
+void copy(struct String *dest, struct String * src){
+    assert(dest);
+    assert(src);
+    /**
+     * Must check wheter both strings are interned,
+     * if dest is interned, we might need to delete this (if ref_count is 1).
+     * if src is interned, we only need to increment ref_count;
+     **/
+}
+
+int ref_count(struct String * string){
+    return string->ref_count;
+}
+
+void set_hash(struct String * string,unsigned long hash){
+    string->hash = hash;
+}
+
+unsigned long get_hash(struct String * string){
+    return string->hash;
 }
 
 void dec_ref_count(struct String * string){
@@ -63,43 +145,3 @@ void dec_ref_count(struct String * string){
 void inc_ref_count(struct String * string){
     string->ref_count++;
 }
-
-struct String * new_string(const char * str);
-
-struct String * intern(struct String * string);
-
-char * text(struct String * string){
-    assert(string);
-    return string->text;
-}
-
-void delete_(struct String * string);
-
-bool equals_str(struct String * a,struct String * b);
-
-unsigned short length(struct String * string){
-    assert(string);
-    return string->length;
-}
-
-bool equals_char(struct String * a, const char * b){
-    assert(a);
-    assert(b);
-    return equals(text(a),length(a),b,strlen(b));
-}
-
-bool equals(const char * a, int len_a, const char * b, int len_b){
-    if(len_a!=len_b)
-        return false;
-    int i;
-    while(i>0){
-        if(a[i]!=b[i])
-            return false;
-        i++;
-    }
-    return true;
-}
-
-void copy(struct String *dest, struct String * src);
-
-int ref_count(struct String * string);

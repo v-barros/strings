@@ -36,6 +36,7 @@
 struct String{
 	int ref_count;
 	unsigned short length;
+	unsigned long hash;
 	const char * text;
 	struct String * next;
 };
@@ -89,21 +90,24 @@ static unsigned short max_text_length = (1 << 16) -1;/* 65534 */
 
 extern const void * String;
 
-struct String * literal(struct Table * table,const char * str);
+struct String * literal(struct Table *table,const char * str);
 
 struct String * new_string(const char * str);
 
 struct String * intern(struct String * string);
 
-char * text(struct String * string);
+const char * get_text(struct String * string);
 
 void delete_(struct String * string);
 
 bool equals_str(struct String * a,struct String * b);
 
-bool equals_char(struct String * a, const char * b);
+bool equals_char_l(struct String * a, const char * b, unsigned short len_b);
 
-bool equals(const char * a, int32_t len_a, const char * b, int32_t len_b);
+bool equals(const char * a, unsigned short len_a,
+ 			const char * b, unsigned short len_b);
+
+struct String * create_string(const char * str, unsigned short str_len, unsigned long hash);
 
 /**
  * True if every char is a printable ascii char. 
@@ -120,7 +124,7 @@ bool is_ascii(const char * str, int len);
  *   ^
  * copy(dest,src) is the right way to do this.
  * */
-void * set_text(struct String * string, const char * text);
+void * set_text(struct String * string, const char * text,unsigned short text_len);
 
 /**
  * Used to assign a String to another instance of String, ex:
@@ -140,4 +144,9 @@ void inc_ref_count(struct String * string);
 int ref_count(struct String * string);
 
 unsigned short length(struct String * string);
+
+void set_hash(struct String * string, unsigned long hash);
+
+unsigned long get_hash(struct String * string);
+
 #endif /*STRING_H_*/

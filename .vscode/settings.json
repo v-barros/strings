@@ -4,6 +4,14 @@
         "stringtable.h": "c",
         "stdint.h": "c",
         "string.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "*.tcc": "c",
+        "fstream": "c",
+        "ostream": "c",
+        "sstream": "c",
+        "streambuf": "c",
+        "string": "c",
+        "random": "c",
+        "typeinfo": "c"
     }
 }
