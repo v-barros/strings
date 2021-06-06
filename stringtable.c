@@ -1,4 +1,26 @@
 /*
+ *MIT License
+ *
+ *Copyright (c) 2021 v-barros
+ *
+ *Permission is hereby granted, free of charge, to any person obtaining a copy
+ *of this software and associated documentation files (the "Software"), to deal
+ *in the Software without restriction, including without limitation the rights
+ *to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *copies of the Software, and to permit persons to whom the Software is
+ *furnished to do so, subject to the following conditions:
+ *
+ *The above copyright notice and this permission notice shall be included in all
+ *copies or substantial portions of the Software.
+ *
+ *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *SOFTWARE.
+ *
  * hashtable.c
  *
  *  Created on: 2021-05-29
@@ -6,14 +28,8 @@
  * 
  * 
  */
-#include <assert.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
 #include "stringtable.h"
-#include "memory.h"
+#include "string.h"
 
 static const size_t _Table = sizeof(struct Table);
 const void *Table = &_Table;
@@ -26,7 +42,6 @@ struct Table *new_table()
     table->table_size = TABLE_SIZE;
     return table;
 }
-
 /**
  * Bucket verification
  * */
@@ -63,6 +78,7 @@ struct String *basic_add(struct Table *table, const char *str, unsigned short st
         inc_ref_count(new_string);
         *(table->table + index) = new_string;
         inc_num_of_entries(table);
+        set_interned(new_string);
         return new_string;
     }
     return lookup(table, index, str, str_len, full_hash);
@@ -70,8 +86,8 @@ struct String *basic_add(struct Table *table, const char *str, unsigned short st
 
 struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash)
 {
-
     struct String *string = *(table->table + index);
+    assert(string);
     struct String * previous = string;
     do
     {
@@ -87,7 +103,8 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
 
     struct String *new_string = create_string(name, name_len, full_hash);
     inc_ref_count(new_string);
-
+    set_interned(new_string);
+    
     previous->next = new_string;
     inc_num_of_entries(table);
     return new_string;
@@ -122,8 +139,17 @@ int number_of_entries(struct Table * table){
     return table->number_of_entries;
 }
 
+void set_interned(struct String * string ){
+    string->is_interned = true;
+}
+
+bool is_interned(struct String * string){
+    return string->is_interned;
+}
+
 bool needs_rehashing(int count);
 
 void rehash_table();
+
 
 struct String * lookup_and_get_previous(struct String * string, const char * str, unsigned long full_hash);

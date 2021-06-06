@@ -29,16 +29,21 @@
  */
 #ifndef STRING_H_
 #define STRING_H_
-#include <stdint.h>
+#include <assert.h>
+#include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
+#include <stdint.h>
 #include "stringtable.h"
+#include "memory.h"
 
 struct String{
-	int ref_count;
-	unsigned short length;
-	unsigned long hash;
 	const char * text;
+	unsigned long hash; 
 	struct String * next;
+	int ref_count;
+	unsigned short length; 
+	bool is_interned;
 };
 
 /**

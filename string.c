@@ -1,16 +1,34 @@
 /*
+ *MIT License
+ *
+ *Copyright (c) 2021 v-barros
+ *
+ *Permission is hereby granted, free of charge, to any person obtaining a copy
+ *of this software and associated documentation files (the "Software"), to deal
+ *in the Software without restriction, including without limitation the rights
+ *to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *copies of the Software, and to permit persons to whom the Software is
+ *furnished to do so, subject to the following conditions:
+ *
+ *The above copyright notice and this permission notice shall be included in all
+ *copies or substantial portions of the Software.
+ *
+ *THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ *SOFTWARE.
+ *
  * string.c
  *
  *  Created on: 2021-05-29
  *      Author: @v-barros
  */
-#include <assert.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
+
 #include "string.h"
-#include "memory.h"
+
 
 static const size_t _String = sizeof(struct String);
 const void * String = &_String;
@@ -26,7 +44,6 @@ unsigned long hash_code(const char * str){
 	return hash;
 }
 
-
 /**
  * String name = "foo"; 
  * */
@@ -39,6 +56,23 @@ struct String * literal(struct Table *table,const char * str){
     
     return basic_add(table, str,str_len);    
 }
+
+struct String * new_string(const char * str){
+    unsigned long str_len;
+    assert(str);
+    str_len = strlen(str);
+    assert(is_ascii(str,str_len));
+    assert(str_len<max_text_length);
+
+    struct String *new_string = create_string(str, str_len, hash_gen(str));
+    inc_ref_count(new_string);
+    
+    return new_string;
+}
+
+struct String * intern(struct String * string);
+
+void delete_(struct String * string);
 
 bool is_ascii(const char * str, int len){
     int i =0;
@@ -54,18 +88,15 @@ void * set_text(struct String * string, const char * text, unsigned short text_l
     string->length = text_len;
 }
 
-
-
-struct String * new_string(const char * str);
-
-struct String * intern(struct String * string);
-
 const char * get_text(struct String * string){
     assert(string);
     return string->text;
 }
 
-void delete_(struct String * string);
+unsigned short length(struct String * string){
+    assert(string);
+    return string->length;
+}
 
 bool equals_str(struct String * a,struct String * b){
     if(a==b)
@@ -73,11 +104,6 @@ bool equals_str(struct String * a,struct String * b){
     
     return equals(get_text(a),length(a),
                   get_text(b),length(b));
-}
-
-unsigned short length(struct String * string){
-    assert(string);
-    return string->length;
 }
 
 bool equals_char(struct String * a, const char * b){

@@ -32,16 +32,20 @@
 #define TABLE_SIZE 3
 #define REHASH_MULTIPLE 60
 #define REHASH_COUNT 100
-#include <stdint.h>
+#include <assert.h>
+#include <stdlib.h>
 #include <stdbool.h>
-#include "string.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
+#include "memory.h"
 
 struct Table{
 	int table_size;
 	int number_of_entries;
 	int rehash_multiple;
 	int rehash_count;
-	const struct String * table[TABLE_SIZE];
+	struct String * table[TABLE_SIZE];
 };
 extern const void * Table;
 
@@ -100,6 +104,8 @@ bool needs_rehashing(int count);
  * with the existing strings.   Set flag to use the alternate hash code afterwards.
  * */
 void rehash_table();
+
+void set_interned(struct String * string );
 
 bool is_interned(struct String * string);
 

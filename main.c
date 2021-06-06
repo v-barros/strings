@@ -26,31 +26,21 @@
  *  Created on: 2021-05-29
  *      Author: @v-barros
  */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "stringtable.h"
 #include "string.h"
-
-//struct String * literal(struct Table * table,const char * str);
+#include "stringtable.h"
+#include <stdio.h>
 
 
 int main(void){
 	struct Table * table = new_table();
+
+
 	struct String * string = literal(table,"myString");
-	
-	//printf("\ntext: %s reference count: %d address: 0x%p \n",get_text(string),ref_count(string),string);
-	
-	struct String * string2 = literal(table,"myString");
-	printf("\ntext: %s reference count: %d address: 0x%p number of entries: %d\n",get_text(string2),ref_count(string2),string2,number_of_entries(table));
-	struct String * string3 = literal(table,"aaa");
-	struct String * string4 = literal(table,"str");
-	struct String * string5 = literal(table,"strin");
+	struct String * string1 = new_string("myString");
 
-	
-	printf("\ntext: %s reference count: %d address: 0x%p number of entries: %d\n",get_text(string3),ref_count(string3),string3,number_of_entries(table));
-	
-	debug_table(table);
+	printf("%d %d\n", (int) ((void *)string ==(void *) string1), equals_str(string, string1));
+
+	//printf("\ntext: %s reference count: %d address: 0x%p number of entries: %d\n",get_text(string3),ref_count(string3),string3,number_of_entries(table));
+
 	return 1;
-
 }
