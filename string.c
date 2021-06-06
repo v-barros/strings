@@ -44,9 +44,6 @@ unsigned long hash_code(const char * str){
 	return hash;
 }
 
-/**
- * String name = "foo"; 
- * */
 struct String * literal(struct Table *table,const char * str){
     unsigned long str_len;
     assert(str && table);
@@ -54,7 +51,7 @@ struct String * literal(struct Table *table,const char * str){
     assert(is_ascii(str,str_len));
     assert(str_len<max_text_length);
     
-    return basic_add(table, str,str_len);    
+    return add_from_char_array(table, str,str_len);    
 }
 
 struct String * new_string(const char * str){
@@ -70,7 +67,13 @@ struct String * new_string(const char * str){
     return new_string;
 }
 
-struct String * intern(struct String * string);
+struct String * intern(struct Table * table,struct String * string){
+    assert(string && table);
+    if(!is_interned(string)){  
+        string = add_from_string(table,string);
+    }
+    return string;
+}
 
 void delete_(struct String * string);
 

@@ -99,7 +99,7 @@ struct String * literal(struct Table *table,const char * str);
 
 struct String * new_string(const char * str);
 
-struct String * intern(struct String * string);
+struct String * intern(struct Table * table,struct String * string);
 
 const char * get_text(struct String * string);
 

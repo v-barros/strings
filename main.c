@@ -34,10 +34,13 @@
 int main(void){
 	struct Table * table = new_table();
 
-
 	struct String * string = literal(table,"myString");
 	struct String * string1 = new_string("myString");
+	
+	printf("%d %d\n", (int) ((void *)string ==(void *) string1), equals_str(string, string1));
 
+	string1 = intern(table,string1);
+	
 	printf("%d %d\n", (int) ((void *)string ==(void *) string1), equals_str(string, string1));
 
 	//printf("\ntext: %s reference count: %d address: 0x%p number of entries: %d\n",get_text(string3),ref_count(string3),string3,number_of_entries(table));

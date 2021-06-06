@@ -60,7 +60,9 @@ struct Table * new_table();
  * a pointer to the interned String.
  * If it doesnt, insert the string on the table and returns a pointer to the the interned String.
  * */
-struct String * basic_add(struct Table * table, const char * str,unsigned short str_len );
+struct String * add_from_char_array(struct Table * table, const char * str,unsigned short str_len );
+
+struct String * add_from_string(struct Table * table, struct String * string);
 /**
  * Return the number of entries on the table(number of active keys)
  * */
@@ -81,6 +83,8 @@ struct String * lookup_and_get_previous(struct String * string, const char * str
  * else, NULL.
  * */
 struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash);
+
+struct String * put_at_empty_bucket(struct Table * table, int index, struct String * string);
 /**
  * Return the table size(number of buckets)
  * */

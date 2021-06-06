@@ -66,7 +66,7 @@ unsigned long hash_gen(const char *str)
     return hash;
 }
 
-struct String *basic_add(struct Table *table, const char *str, unsigned short str_len)
+struct String *add_from_char_array(struct Table *table, const char *str, unsigned short str_len)
 {
     unsigned long full_hash = hash_gen(str);
     int index = hash_validate(full_hash);
@@ -75,20 +75,31 @@ struct String *basic_add(struct Table *table, const char *str, unsigned short st
     if (is_empty_bucket(table, index))
     {
         new_string = create_string(str, str_len, full_hash);
-        inc_ref_count(new_string);
-        *(table->table + index) = new_string;
-        inc_num_of_entries(table);
-        set_interned(new_string);
-        return new_string;
+        return put_at_empty_bucket(table, index, new_string);
     }
     return lookup(table, index, str, str_len, full_hash);
+}
+
+struct String *add_from_string(struct Table *table, struct String *string)
+{
+    unsigned long full_hash = get_hash(string);
+    int index = hash_validate(full_hash);
+    struct String *new_string;
+
+    if (is_empty_bucket(table, index))
+    {
+        new_string = create_string(get_text(string), length(string), full_hash);
+        return put_at_empty_bucket(table, index, new_string);
+    }
+    return lookup(table, index, get_text(string), length(string), full_hash);
 }
 
 struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash)
 {
     struct String *string = *(table->table + index);
-    assert(string);
     struct String * previous = string;
+    assert(string);
+    
     do
     {
         if (equals_char_l(string, name, name_len))
@@ -109,7 +120,13 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
     inc_num_of_entries(table);
     return new_string;
 }
-
+struct String * put_at_empty_bucket(struct Table * table, int index, struct String * string){
+    inc_ref_count(string);
+    *(table->table + index) = string;
+    inc_num_of_entries(table);
+    set_interned(string);
+    return string;
+}
 bool is_empty_bucket(struct Table * table, int index){
     return(!(*(table->table+index)));
 }
@@ -150,6 +167,5 @@ bool is_interned(struct String * string){
 bool needs_rehashing(int count);
 
 void rehash_table();
-
 
 struct String * lookup_and_get_previous(struct String * string, const char * str, unsigned long full_hash);
