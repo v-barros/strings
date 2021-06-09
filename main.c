@@ -31,19 +31,22 @@
 #include <stdio.h>
 
 
-int main(void){
-	struct Table * table = new_table();
+int main(void)
+{
+	INIT_TABLE;
+	STRING string = LITERAL("myString"); 	 /*String str = "";*/
+	STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
 
-	struct String * string = literal(table,"myString");
-	struct String * string1 = new_string("myString");
+	printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string),ref_count(string1),string1,number_of_entries(table));
+
+	SET(string)(string1);					 /*string = string1*/
 	
-	printf("%d %d\n", (int) ((void *)string ==(void *) string1), equals_str(string, string1));
+	STRING string2 = LITERAL("myString");
+	printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string2),ref_count(string2),string2,number_of_entries(table)); // new address, different than previous String string address,
 
-	string1 = intern(table,string1);
-	
-	printf("%d %d\n", (int) ((void *)string ==(void *) string1), equals_str(string, string1));
 
-	//printf("\ntext: %s reference count: %d address: 0x%p number of entries: %d\n",get_text(string3),ref_count(string3),string3,number_of_entries(table));
+	SET(string2)(string1);	
+	printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string1),ref_count(string1),string1,number_of_entries(table));
 
 	return 1;
 }

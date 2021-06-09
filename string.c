@@ -44,7 +44,8 @@ unsigned long hash_code(const char * str){
 	return hash;
 }
 
-struct String * literal(struct Table *table,const char * str){
+struct String * literal(struct Table *table,const char * str)
+{
     unsigned long str_len;
     assert(str && table);
     str_len = strlen(str);
@@ -54,7 +55,8 @@ struct String * literal(struct Table *table,const char * str){
     return add_from_char_array(table, str,str_len);    
 }
 
-struct String * new_string(const char * str){
+struct String * new_string(const char * str)
+{
     unsigned long str_len;
     assert(str);
     str_len = strlen(str);
@@ -67,110 +69,160 @@ struct String * new_string(const char * str){
     return new_string;
 }
 
-struct String * intern(struct Table * table,struct String * string){
+struct String *intern(struct Table *table, struct String *string)
+{
     assert(string && table);
-    if(!is_interned(string)){  
-        string = add_from_string(table,string);
+    if (!is_interned(string))
+    {
+        string = add_from_string_obj(table, string);
     }
     return string;
 }
 
-void delete_(struct String * string);
+void delete_not_interned(struct String *string)
+{
+    if (ref_count(string) > 1)
+    {
+        dec_ref_count(string);
+    }
+    else
+    {
+        delete_str(string);
+    }
+}
 
-bool is_ascii(const char * str, int len){
-    int i =0;
-    for(;i<len;i++)
-        if(!(str[i]>=0x20 && str[i]<=0x7E))
+void delete_str(struct String * string)
+{
+    delete ((void *)string->text);
+    delete (string);
+}
+
+bool is_ascii(const char *str, int len)
+{
+    int i = 0;
+    for (; i < len; i++)
+        if (!(str[i] >= 0x20 && str[i] <= 0x7E))
             return false;
     return true;
 }
 
-void * set_text(struct String * string, const char * text, unsigned short text_len){
-    assert(!string->text);/*immutable, right?*/
-    string->text=text;
+void set_text(struct String *string, const char *text, unsigned short text_len)
+{
+    assert(!string->text); /*immutable, right?*/
+    string->text = text;
     string->length = text_len;
 }
 
-const char * get_text(struct String * string){
+const char *get_text(struct String *string)
+{
     assert(string);
     return string->text;
 }
 
-unsigned short length(struct String * string){
+unsigned short length(struct String *string)
+{
     assert(string);
     return string->length;
 }
 
-bool equals_str(struct String * a,struct String * b){
-    if(a==b)
+bool equals_str(struct String *a, struct String *b)
+{
+    if (a == b)
         return true;
-    
-    return equals(get_text(a),length(a),
-                  get_text(b),length(b));
+
+    return equals(get_text(a), length(a),
+                  get_text(b), length(b));
 }
 
-bool equals_char(struct String * a, const char * b){
+bool equals_char(struct String *a, const char *b)
+{
     assert(a);
     assert(b);
-    return equals(get_text(a),length(a),
-                  b,strlen(b));
+    return equals(get_text(a), length(a),
+                  b, strlen(b));
 }
 
-bool equals_char_l(struct String * a, const char * b, unsigned short len_b){
-    return equals(get_text(a),length(a),
-                  b,len_b);
+bool equals_char_l(struct String *a, const char *b, unsigned short len_b)
+{
+    return equals(get_text(a), length(a),
+                  b, len_b);
 }
 
-bool equals(const char * a, unsigned short len_a,
-            const char * b, unsigned short len_b){
-    
-    if(len_a!=len_b)
+bool equals(const char *a, unsigned short len_a,
+            const char *b, unsigned short len_b)
+{
+
+    if (len_a != len_b)
         return false;
     int i = len_a;
-    while(i>=0){
-        if(a[i]!=b[i])
+    while (i >= 0)
+    {
+        if (a[i] != b[i])
             return false;
         i--;
     }
     return true;
 }
 
-struct String * create_string(const char * str, unsigned short str_len, unsigned long hash){
-    struct String * string = alloc(String);
-    char * text = (char * ) malloc (str_len+1);
-    strcpy(text,str);
-    set_text(string,text,str_len);
-    set_hash(string,hash);
+struct String *create_string(const char *str, unsigned short str_len, unsigned long hash)
+{
+    struct String *string = alloc(String);
+    char *text = (char *)malloc(str_len + 1);
+    strcpy(text, str);
+    set_text(string, text, str_len);
+    set_hash(string, hash);
     return string;
 }
 
-void copy(struct String *dest, struct String * src){
-    assert(dest);
+struct String * copy(struct String *src)
+{
     assert(src);
-    /**
-     * Must check wheter both strings are interned,
-     * if dest is interned, we might need to delete this (if ref_count is 1).
-     * if src is interned, we only need to increment ref_count;
-     **/
+    inc_ref_count(src);
+    return src;
 }
 
-int ref_count(struct String * string){
+int ref_count(struct String *string)
+{
     return string->ref_count;
 }
 
-void set_hash(struct String * string,unsigned long hash){
+void set_hash(struct String *string, unsigned long hash)
+{
     string->hash = hash;
 }
 
-unsigned long get_hash(struct String * string){
+unsigned long get_hash(struct String *string)
+{
     return string->hash;
 }
 
-void dec_ref_count(struct String * string){
-    assert(string->ref_count-1>=0);
-    string->ref_count--;    
+void dec_ref_count(struct String *string)
+{
+    assert(string->ref_count - 1 >= 0);
+    string->ref_count--;
 }
 
-void inc_ref_count(struct String * string){
+void inc_ref_count(struct String *string)
+{
     string->ref_count++;
+}
+
+void drop(struct Table * table,struct String * string)
+{
+    assert(string);
+    if(!is_interned(string))
+        delete_not_interned(string);
+    else{
+        delete_interned(table,string);
+    }
+}
+
+void delete_interned(struct Table * table, struct String * string)
+{
+    if(ref_count(string)>1)
+    {   
+        dec_ref_count(string);
+        return;
+    }
+    delete_entry(table,string);
 }

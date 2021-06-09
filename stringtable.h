@@ -54,6 +54,8 @@ extern const void * Table;
  * */
 struct Table * new_table();
 
+void delete_entry(struct Table * table, struct String* string);
+
 /**
  * Given a String, try to insert a new structure on the table
  * If the String already exists on the table, increases the ref_count and returns 
@@ -62,7 +64,7 @@ struct Table * new_table();
  * */
 struct String * add_from_char_array(struct Table * table, const char * str,unsigned short str_len );
 
-struct String * add_from_string(struct Table * table, struct String * string);
+struct String * add_from_string_obj(struct Table * table, struct String * string);
 /**
  * Return the number of entries on the table(number of active keys)
  * */
@@ -90,6 +92,8 @@ struct String * put_at_empty_bucket(struct Table * table, int index, struct Stri
  * */
 int table_size(struct Table * table);
 
+struct String * find_previous(struct Table *table, int index, const char *name, unsigned short name_len);
+
 /**
  *  Prints address of buckets from 0 to tableSize, but it doesnt loop through Buckets
  * */
@@ -116,4 +120,12 @@ bool is_interned(struct String * string);
 bool is_empty_bucket(struct Table * table, int index);
 
 void inc_num_of_entries(struct Table * table);
+
+void dec_num_of_entries(struct Table * table);
+
+void set_next(struct String * string,struct String * next);
+
+struct String * get_next(struct String * string);
+
+bool is_at(struct Table * table, int index, struct String * string);
 #endif /* STRINGTABLE_H_ */
