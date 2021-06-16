@@ -53,8 +53,6 @@ int hash_validate(unsigned long full_hash)
     return h;
 }
 
-/* DJB2. See: https://theartincode.stanis.me/008-djb2/ */
-unsigned long hash_gen(const char *str);
 
 unsigned long hash_gen(const char *str)
 {
@@ -97,7 +95,7 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
 {
     struct String *string = *(table->table + index);
     struct String *previous = string;
-    
+    int count;
     do
     {
         if (equals_char_l(string, name, name_len))
@@ -107,6 +105,7 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
         }
         previous = string;
         string = string->next;
+        count++;
     } while (string);
     /*reached end of bucket*/
 
@@ -115,6 +114,9 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
     set_interned(new_string);
     set_next(previous,new_string);
     inc_num_of_entries(table);
+
+    if(count>=table->rehash_count&&!needs_rehashing())
+        table->needs_rehashing = check_rehash_table(table,count);
     return new_string;
 }
 
@@ -232,6 +234,6 @@ bool is_interned(struct String *string)
     return string->is_interned;
 }
 
-bool needs_rehashing(int count);
+bool needs_rehashing();
 
 void rehash_table();

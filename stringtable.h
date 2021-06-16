@@ -46,6 +46,7 @@ struct Table{
 	int rehash_multiple;
 	int rehash_count;
 	struct String * table[TABLE_SIZE];
+	bool needs_rehashing;
 };
 extern const void * Table;
 
@@ -105,8 +106,10 @@ void debug_table(struct Table * table );
  *  This is somewhat an arbitrary heuristic but if one bucket gets to
  *  rehash_count which is currently 100, there's probably something wrong.
  * */
-bool needs_rehashing(int count);
+bool needs_rehashing();
 
+
+bool check_rehash_table(struct Table * table, int count);
 /**
  * Create a new table and using alternate hash code, populate the new table
  * with the existing strings.   Set flag to use the alternate hash code afterwards.
