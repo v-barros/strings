@@ -50,7 +50,7 @@ struct String{
 	struct String * next;
 	int ref_count;
 	unsigned short length; 
-	bool is_interned;
+	bool is_shared;
 };
 
 /**
@@ -92,7 +92,7 @@ struct String{
  * 
  * */
 
-static unsigned short max_text_length = (1 << 16)-1;/* 65534 */
+static unsigned short max_text_length = (1 << 16)-1;/* 65535 */
 
 extern const void * String;
 
@@ -107,9 +107,9 @@ struct String * intern(struct Table * table,struct String * string);
 
 const char * get_text(struct String * string);
 
-void delete_interned(struct Table * table, struct String * string);
+void delete_shared(struct Table * table, struct String * string);
 
-void delete_not_interned(struct String * string);
+void delete_not_shared(struct String * string);
 
 void delete_str(struct String * string);
 
@@ -124,7 +124,7 @@ struct String * create_string(const char * str, unsigned short str_len, unsigned
 
 /**
  * True if every char is a printable ascii char. 
- * 0x20 - 0x7E 
+ * ie between 0x20 and 0x7E 
  * */
 bool is_ascii(const char * str, int len);
 
@@ -162,4 +162,9 @@ void set_hash(struct String * string, unsigned long hash);
 
 unsigned long get_hash(struct String * string);
 
+// For new table alternate hashing
+unsigned long new_hash(struct String * string, unsigned long seed);
+
+/* Pick hash algorithm */
+unsigned long hash_string(struct String * string, int len);
 #endif /*STRING_H_*/

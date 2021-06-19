@@ -28,21 +28,10 @@
  */
 
 #include "string.h"
-
+#include "hashing.h"
 
 static const size_t _String = sizeof(struct String);
 const void * String = &_String;
-
-/* DJB2. See: https://theartincode.stanis.me/008-djb2/ */
-unsigned long hash_gen(const char * str);
-
-unsigned long hash_code(const char * str){
-    unsigned long hash = 5381;
-	int8_t c;
-	while (c = *str++)
-		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-	return hash;
-}
 
 struct String * literal(struct Table *table,const char * str)
 {
@@ -72,29 +61,11 @@ struct String * new_string(const char * str)
 struct String *intern(struct Table *table, struct String *string)
 {
     assert(string && table);
-    if (!is_interned(string))
+    if (!is_shared(string))
     {
         string = add_from_string_obj(table, string);
     }
     return string;
-}
-
-void delete_not_interned(struct String *string)
-{
-    if (ref_count(string) > 1)
-    {
-        dec_ref_count(string);
-    }
-    else
-    {
-        delete_str(string);
-    }
-}
-
-void delete_str(struct String * string)
-{
-    delete ((void *)string->text);
-    delete (string);
 }
 
 bool is_ascii(const char *str, int len)
@@ -210,19 +181,40 @@ void inc_ref_count(struct String *string)
 void drop(struct Table * table,struct String * string)
 {
     assert(string);
-    if(!is_interned(string))
-        delete_not_interned(string);
-    else{
-        delete_interned(table,string);
-    }
+    if(!is_shared(string))
+        delete_not_shared(string);
+    else
+        delete_shared(table,string);
 }
 
-void delete_interned(struct Table * table, struct String * string)
+void delete_shared(struct Table * table, struct String * string)
 {
     if(ref_count(string)>1)
-    {   
         dec_ref_count(string);
-        return;
-    }
-    delete_entry(table,string);
+    else
+        delete_entry(table,string);
+}
+
+void delete_not_shared(struct String *string)
+{
+    if (ref_count(string) > 1)
+        dec_ref_count(string);
+    else    
+        delete_str(string);   
+}
+
+void delete_str(struct String * string)
+{
+    delete ((void *)string->text);
+    delete (string);
+}
+
+unsigned long new_hash(struct String * string, unsigned long seed)
+{
+    return alt_hash(seed,get_text(string),length(string));
+}
+
+unsigned long hash_string(struct String * string, int len)
+{
+    return use_alt_hashing() ? alt_hash(seed(),get_text(string),len) : hash_gen(string);
 }

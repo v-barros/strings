@@ -52,5 +52,8 @@
         "queue": "c",
         "stdexcept": "c",
         "cstdbool": "c"
+    },
+    "files.watcherExclude": {
+        "**/target": true
     }
 }

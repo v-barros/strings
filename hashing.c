@@ -23,21 +23,29 @@
  *
  *hashing.h
  *
- *  Created on: 2021-06-09
+ *  Created on: 2021-06-19
  *      Author: @v-barros
  */
 
-#ifndef _HASHING_
-#define _HASHING_
-#include <inttypes.h>
+#include "hashing.h"
 
- /* DJB2. See: https://theartincode.stanis.me/008-djb2/ */
-unsigned long hash_gen(const char *str);
+unsigned long hash_gen(const char *str)
+{
+    unsigned long hash = 5381;
+    int8_t c;
+    while (c = *str++)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    return hash;
+}
 
-/* Check: https://github.com/veorq/SipHash/ and https://www.aumasson.jp/siphash/siphash.pdf */
-unsigned long alt_hash(uint64_t seed, const char * str, unsigned short len);
+//tbd
+unsigned long alt_hash(uint64_t seed, const char * str, unsigned short len)
+{
+    return hash_gen(str);
+}
 
-/* Seed value used for each alternative hash calculated. */
-unsigned long compute_seed();
-
-#endif /*_HASHIGN_*/
+//tbd
+unsigned long compute_seed()
+{
+    return 1;
+}

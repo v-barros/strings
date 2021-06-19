@@ -28,7 +28,10 @@
  */
 #include "stringtable.h"
 #include "string.h"
+#include "hashing.h"
 
+
+static unsigned long _seed;
 static const size_t _Table = sizeof(struct Table);
 const void *Table = &_Table;
 
@@ -41,6 +44,12 @@ struct Table *new_table()
     return table;
 }
 
+unsigned long seed();
+
+unsigned long seed(){
+    return _seed;
+}
+
 /**
  * Bucket verification
  * */
@@ -51,16 +60,6 @@ int hash_validate(unsigned long full_hash)
     int h = full_hash % TABLE_SIZE;
     assert((h >= 0 && h < TABLE_SIZE));
     return h;
-}
-
-
-unsigned long hash_gen(const char *str)
-{
-    unsigned long hash = 5381;
-    int8_t c;
-    while (c = *str++)
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-    return hash;
 }
 
 struct String *add_from_char_array(struct Table *table, const char *str, unsigned short str_len)
@@ -115,7 +114,9 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
     set_next(previous,new_string);
     inc_num_of_entries(table);
 
-    if(count>=table->rehash_count&&!needs_rehashing())
+    if(needs_rehashing(table))
+        rehash_table(table);
+    if(count>=table->rehash_count&&!needs_rehashing(table))
         table->needs_rehashing = check_rehash_table(table,count);
     return new_string;
 }
@@ -130,15 +131,15 @@ struct String *put_at_empty_bucket(struct Table *table, int index, struct String
 }
 
 void delete_entry(struct Table * table, struct String* stringToDelete)
-{   struct String * stringCheck;
-    
+{   
+    struct String * stringCheck;
 
     int index = hash_validate(get_hash(stringToDelete));
 
 	/**
 	 * 	2 possibilities here, ->
 	 *  1: str is at the first node of the bucket(table->table[i]);
-	 *  2: str is anywhere but the first node(stringCheck->next);
+	 *  2: str is anywhere but on the first node(stringCheck->next);
 	 * */ 
 
     if(is_at(table,index,stringToDelete))
@@ -226,14 +227,98 @@ int number_of_entries(struct Table *table)
 
 void set_interned(struct String *string)
 {
-    string->is_interned = true;
+    string->is_shared = true;
 }
 
-bool is_interned(struct String *string)
+bool is_shared(struct String *string)
 {
-    return string->is_interned;
+    return string->is_shared;
 }
 
-bool needs_rehashing();
+bool needs_rehashing(struct Table * table){
+    return table->needs_rehashing;
+}
 
-void rehash_table();
+bool check_rehash_table(struct Table * table, int count){
+  assert(table_size(table) != 0);
+  if (count > ((number_of_entries(table)/table_size(table))*table->rehash_multiple))
+  {
+    // Set a flag for the next safepoint, which should be at some guaranteed
+    // safepoint interval.
+    return true;
+  }
+  return false;
+}
+
+void rehash_table(struct Table * table)
+{
+
+  struct Table * newtable = new_table();
+
+  move_to(table,newtable);
+
+  // Delete the table and buckets (entries are reused in new table).
+  //delete _the_table;
+  // Don't check if we need rehashing until the table gets unbalanced again.
+  // Then rehash with a new global seed.
+  //_needs_rehashing = false;
+  //_the_table = new_table;
+}
+
+void move_to(struct Table * table, struct Table * newtable)
+{
+// Initialize the global seed for hashing.
+  _seed = compute_seed();
+  assert(seed() != 0);
+  int i;
+  int saved_entry_count = number_of_entries(table);
+  struct String * p, *next;
+  // Iterate through the table and create a new entry for the new table
+  for (i = 0; i < table_size(new_table); ++i) {
+    for (p = bucket(table,i); p != NULL; ) {
+      next = get_next(p);
+      
+      // Use alternate hashing algorithm on the symbol in the first table
+      unsigned int hashValue = new_hash(p,seed());
+      // Get a new index relative to the new table (can also change size)
+      int index = hash_validate(hashValue);
+     
+      set_hash(p,hashValue);
+      // Keep the shared bit in the Hashtable entry to indicate that this entry
+      // can't be deleted.   The shared bit is the LSB in the _next field so
+      // walking the hashtable past these entries requires
+      // BasicHashtableEntry::make_ptr() call.
+      bool keep_shared = is_shared(p);
+      unlink_entry(table,p);
+      add_from_string_obj(newtable,p);
+      if (keep_shared) {
+        set_shared(p); //don't need this if lookup is setting the entry to interned
+      }
+      p = next;
+    }
+  }
+  // give the new table the free list as well
+  //new_table->copy_freelist(this);
+  //assert(new_table->number_of_entries() == saved_entry_count, "lost entry on dictionary copy?");
+
+  // Destroy memory used by the buckets in the hashtable.  The memory
+  // for the elements has been used in a new table and is not
+  // destroyed.  The memory reuse will benefit resizing the SystemDictionary
+  // to avoid a memory allocation spike at safepoint.
+  //BasicHashtable<F>::free_buckets();
+
+}
+
+struct String * bucket(struct Table * table, int index)
+{
+    return *(table->table+index);
+}
+bool use_alt_hashing(){
+    return _seed!=0;
+}
+
+void unlink_entry(struct Table * table, struct String * string)
+{
+    string->is_shared=0;
+    dec_num_of_entries(table);
+}
