@@ -37,16 +37,18 @@ int main(void)
 	STRING string = LITERAL("myString"); 	 /*String str = "";*/
 	STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
 
-	printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string),ref_count(string1),string1,number_of_entries(table));
+	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string),ref_count(string1),string1,number_of_entries(table));
 
 	SET(string)(string1);					 /*string = string1*/
 	
-	STRING string2 = LITERAL("myString");
-	printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string2),ref_count(string2),string2,number_of_entries(table)); // new address, different than previous String string address,
+	//STRING string2 = LITERAL("myString");
+
+	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string2),ref_count(string2),string2,number_of_entries(table)); // new address, different than previous String string address,
 
 
-	SET(string2)(string1);	
+	//SET(string2)(string1);	
 	printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string1),ref_count(string1),string1,number_of_entries(table));
 
+	DEBUG_TABLE;
 	return 1;
 }

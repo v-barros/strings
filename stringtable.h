@@ -86,7 +86,6 @@ int number_of_entries(struct Table * table);
  * */
 struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash);
 
-struct String * put_at_empty_bucket(struct Table * table, int index, struct String * string);
 /**
  * Return the table size(number of buckets)
  * */
@@ -159,6 +158,10 @@ struct String * bucket(struct Table * table, int index);
 
 bool use_alt_hashing();
 
-void unlink_entry(struct Table * table, struct String * string)
+void unlink_entry(struct Table * table, struct String * string);
+
+void basic_add(struct Table * table, struct String * string, int index);
+
+unsigned long seed();
 
 #endif /* STRINGTABLE_H_ */

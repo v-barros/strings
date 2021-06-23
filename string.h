@@ -35,6 +35,8 @@
 #define STRING struct String *
 #define SET(x) drop(table,x);x=TO
 #define TO(y) copy(y)
+#define INTERN(x) intern(table,x)
+#define DEBUG_TABLE debug_table(table)
 
 #include <assert.h>
 #include <stdlib.h>

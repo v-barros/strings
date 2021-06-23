@@ -53,8 +53,7 @@ struct String * new_string(const char * str)
     assert(str_len<max_text_length);
 
     struct String *new_string = create_string(str, str_len, hash_gen(str));
-    inc_ref_count(new_string);
-    
+        
     return new_string;
 }
 
@@ -142,6 +141,7 @@ struct String *create_string(const char *str, unsigned short str_len, unsigned l
     strcpy(text, str);
     set_text(string, text, str_len);
     set_hash(string, hash);
+    inc_ref_count(string);
     return string;
 }
 
@@ -216,5 +216,5 @@ unsigned long new_hash(struct String * string, unsigned long seed)
 
 unsigned long hash_string(struct String * string, int len)
 {
-    return use_alt_hashing() ? alt_hash(seed(),get_text(string),len) : hash_gen(string);
+    return use_alt_hashing() ? alt_hash(seed(),get_text(string),len) : hash_gen(get_text(string));
 }

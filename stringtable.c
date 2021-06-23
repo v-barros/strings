@@ -44,8 +44,6 @@ struct Table *new_table()
     return table;
 }
 
-unsigned long seed();
-
 unsigned long seed(){
     return _seed;
 }
@@ -71,7 +69,9 @@ struct String *add_from_char_array(struct Table *table, const char *str, unsigne
     if (is_empty_bucket(table, index))
     {
         new_string = create_string(str, str_len, full_hash);
-        return put_at_empty_bucket(table, index, new_string);
+        basic_add(table,new_string,index);
+        set_shared(new_string);
+        return new_string; 
     }
     return lookup(table, index, str, str_len, full_hash);
 }
@@ -85,7 +85,9 @@ struct String *add_from_string_obj(struct Table *table, struct String *string)
     if (is_empty_bucket(table, index))
     {
         new_string = create_string(get_text(string), length(string), full_hash);
-        return put_at_empty_bucket(table, index, new_string);
+        basic_add(table,new_string,index);
+        set_shared(new_string);
+        return new_string; 
     }
     return lookup(table, index, get_text(string), length(string), full_hash);
 }
@@ -93,7 +95,6 @@ struct String *add_from_string_obj(struct Table *table, struct String *string)
 struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash)
 {
     struct String *string = *(table->table + index);
-    struct String *previous = string;
     int count;
     do
     {
@@ -102,32 +103,20 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
             inc_ref_count(string);
             return string;
         }
-        previous = string;
         string = string->next;
         count++;
     } while (string);
     /*reached end of bucket*/
 
     struct String *new_string = create_string(name, name_len, full_hash);
-    inc_ref_count(new_string);
-    set_interned(new_string);
-    set_next(previous,new_string);
-    inc_num_of_entries(table);
-
+    set_shared(new_string);
+    basic_add(table,new_string,index);
+    /*
     if(needs_rehashing(table))
         rehash_table(table);
     if(count>=table->rehash_count&&!needs_rehashing(table))
-        table->needs_rehashing = check_rehash_table(table,count);
+        table->needs_rehashing = check_rehash_table(table,count);*/
     return new_string;
-}
-
-struct String *put_at_empty_bucket(struct Table *table, int index, struct String *string)
-{
-    inc_ref_count(string);
-    *(table->table + index) = string;
-    inc_num_of_entries(table);
-    set_interned(string);
-    return string;
 }
 
 void delete_entry(struct Table * table, struct String* stringToDelete)
@@ -225,7 +214,7 @@ int number_of_entries(struct Table *table)
     return table->number_of_entries;
 }
 
-void set_interned(struct String *string)
+void set_shared(struct String *string)
 {
     string->is_shared = true;
 }
@@ -274,7 +263,7 @@ void move_to(struct Table * table, struct Table * newtable)
   int saved_entry_count = number_of_entries(table);
   struct String * p, *next;
   // Iterate through the table and create a new entry for the new table
-  for (i = 0; i < table_size(new_table); ++i) {
+  for (i = 0; i < table_size(newtable); ++i) {
     for (p = bucket(table,i); p != NULL; ) {
       next = get_next(p);
       
@@ -321,4 +310,10 @@ void unlink_entry(struct Table * table, struct String * string)
 {
     string->is_shared=0;
     dec_num_of_entries(table);
+}
+
+void basic_add(struct Table * table, struct String * string, int index){
+    set_next(string,*(table->table+index));
+    *(table->table+index) = string;
+    inc_num_of_entries(table);
 }
