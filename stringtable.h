@@ -57,6 +57,12 @@ extern const void * Table;
  * */
 struct Table * new_table();
 
+/**
+ *  In this case, this it not the same as in hotspot, in hotspot, 
+ *  the entries are kept in a free list, so they can be reused in order
+ *  to reduce object creation.
+ * 	Here, we receive a shared string, remove it from the table and then the memory is freed
+ * */
 void delete_entry(struct Table * table, struct String* string);
 
 /**

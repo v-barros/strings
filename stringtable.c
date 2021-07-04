@@ -60,6 +60,12 @@ int hash_validate(unsigned long full_hash)
     return h;
 }
 
+struct String * make_ptr(struct String * next);
+
+struct String * make_ptr(struct String * next){
+    return (struct String*) ((uintptr_t) next & -2);
+}
+
 struct String *add_from_char_array(struct Table *table, const char *str, unsigned short str_len)
 {
     unsigned long full_hash = hash_gen(str);
@@ -103,7 +109,7 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
             inc_ref_count(string);
             return string;
         }
-        string = string->next;
+        string = get_next(string);
         count++;
     } while (string);
     /*reached end of bucket*/
@@ -133,7 +139,7 @@ void delete_entry(struct Table * table, struct String* stringToDelete)
 
     if(is_at(table,index,stringToDelete))
     {
-        *(table->table+index) = stringToDelete->next; 
+        *(table->table+index) = get_next(stringToDelete);
     }
     else
     {
@@ -149,10 +155,12 @@ void set_next(struct String * string,struct String * next)
     string->next=next;
 }
 
+
 struct String * get_next(struct String * string)
 {
-    return string->next;
+    return make_ptr(string->next);
 }
+
 
 bool is_at(struct Table * table, int index, struct String * string)
 {
@@ -171,7 +179,7 @@ struct String * find_previous(struct Table *table, int index, const char *name, 
             return previous;
         }
         previous = string;
-        string = string->next;
+        string = get_next(string);
     } while (string);
     /*reached end of bucket*/
 
@@ -216,12 +224,12 @@ int number_of_entries(struct Table *table)
 
 void set_shared(struct String *string)
 {
-    string->is_shared = true;
+    string->next = (struct String *) ((uintptr_t) string->next | 1);
 }
 
 bool is_shared(struct String *string)
 {
-    return string->is_shared;
+    return ((uintptr_t)string->next & 1) !=0;
 }
 
 bool needs_rehashing(struct Table * table){
@@ -308,7 +316,7 @@ bool use_alt_hashing(){
 
 void unlink_entry(struct Table * table, struct String * string)
 {
-    string->is_shared=0;
+    string->next=NULL;
     dec_num_of_entries(table);
 }
 

@@ -52,7 +52,6 @@ struct String{
 	struct String * next;
 	int ref_count;
 	unsigned short length; 
-	bool is_shared;
 };
 
 /**
@@ -169,4 +168,5 @@ unsigned long new_hash(struct String * string, unsigned long seed);
 
 /* Pick hash algorithm */
 unsigned long hash_string(struct String * string, int len);
+
 #endif /*STRING_H_*/

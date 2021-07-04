@@ -51,7 +51,8 @@
         "new": "c",
         "queue": "c",
         "stdexcept": "c",
-        "cstdbool": "c"
+        "cstdbool": "c",
+        "memory.h": "c"
     },
     "files.watcherExclude": {
         "**/target": true

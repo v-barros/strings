@@ -35,8 +35,13 @@ int main(void)
 {
 	INIT_TABLE;
 	STRING string = LITERAL("myString"); 	 /*String str = "";*/
-	STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
+	STRING string2 = LITERAL("myStr"); 	 /*String str = "";*/
+	STRING string3 = LITERAL("String"); 	 /*String str = "";*/
+	STRING string4 = LITERAL("my"); 	 /*String str = "";*/
+	STRING string5 = LITERAL("mySt"); 	 /*String str = "";*/
 
+	STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
+	
 	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string),ref_count(string1),string1,number_of_entries(table));
 
 	SET(string)(string1);					 /*string = string1*/
