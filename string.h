@@ -167,6 +167,6 @@ unsigned long get_hash(struct String * string);
 unsigned long new_hash(struct String * string, unsigned long seed);
 
 /* Pick hash algorithm */
-unsigned long hash_string(struct String * string, int len);
+unsigned long hash_string(const char * str, int len);
 
 #endif /*STRING_H_*/

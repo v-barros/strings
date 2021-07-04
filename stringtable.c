@@ -68,7 +68,7 @@ struct String * make_ptr(struct String * next){
 
 struct String *add_from_char_array(struct Table *table, const char *str, unsigned short str_len)
 {
-    unsigned long full_hash = hash_gen(str);
+    unsigned long full_hash = hash_string(str,str_len);
     int index = hash_validate(full_hash);
     struct String *new_string;
 
@@ -101,7 +101,7 @@ struct String *add_from_string_obj(struct Table *table, struct String *string)
 struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash)
 {
     struct String *string = *(table->table + index);
-    int count;
+    int count=0;
     do
     {
         if (equals_char_l(string, name, name_len))
@@ -117,11 +117,18 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
     struct String *new_string = create_string(name, name_len, full_hash);
     set_shared(new_string);
     basic_add(table,new_string,index);
-    /*
-    if(needs_rehashing(table))
+    
+    printf("end of bucket, count: %d\n", count);
+    if(needs_rehashing(table)){
+        printf("needs_rehashing\n\n");
         rehash_table(table);
-    if(count>=table->rehash_count&&!needs_rehashing(table))
-        table->needs_rehashing = check_rehash_table(table,count);*/
+    }
+        
+    if(count>=table->rehash_count&&!needs_rehashing(table)){
+        printf("count->rehash_count count %d num of entries %d\n\n",count,number_of_entries(table));
+        table->needs_rehashing = check_rehash_table(table,count);
+    }
+        
     return new_string;
 }
 
@@ -155,12 +162,10 @@ void set_next(struct String * string,struct String * next)
     string->next=next;
 }
 
-
 struct String * get_next(struct String * string)
 {
     return make_ptr(string->next);
 }
-
 
 bool is_at(struct Table * table, int index, struct String * string)
 {
@@ -198,6 +203,8 @@ int table_size(struct Table *table)
 
 void debug_table(struct Table *table)
 {
+    printf("needs rehashing: %d\nnumber of entries: %d\nrehash count: %d\nrehash multiple: %d\ntable size: %d",
+    table->needs_rehashing,table->number_of_entries,table->rehash_count,table->rehash_multiple,table->table_size);
     int i = 0;
     printf("\n");
     while (i < table->table_size)
@@ -247,19 +254,23 @@ bool check_rehash_table(struct Table * table, int count){
   return false;
 }
 
-void rehash_table(struct Table * table)
+void rehash_table(struct Table *table)
 {
+    struct Table *newtable = new_table();
+    debug_table(table);
+    move_to(table, newtable);
 
-  struct Table * newtable = new_table();
+    // Delete the table and buckets (entries are reused in new table).
+    delete (*table->table);
+    printf("ok\n\n");
+    *table->table = *newtable->table;
 
-  move_to(table,newtable);
-
-  // Delete the table and buckets (entries are reused in new table).
-  //delete _the_table;
-  // Don't check if we need rehashing until the table gets unbalanced again.
-  // Then rehash with a new global seed.
-  //_needs_rehashing = false;
-  //_the_table = new_table;
+    table->needs_rehashing = false;
+    table->number_of_entries = number_of_entries(newtable);
+    // Don't check if we need rehashing until the table gets unbalanced again.
+    // Then rehash with a new global seed.
+    //_needs_rehashing = false;
+    //_the_table = new_table;
 }
 
 void move_to(struct Table * table, struct Table * newtable)
@@ -271,33 +282,43 @@ void move_to(struct Table * table, struct Table * newtable)
   int saved_entry_count = number_of_entries(table);
   struct String * p, *next;
   // Iterate through the table and create a new entry for the new table
+
+  printf("saved entry count: %d\n", saved_entry_count);
   for (i = 0; i < table_size(newtable); ++i) {
     for (p = bucket(table,i); p != NULL; ) {
-      next = get_next(p);
+       // printf("String: %s Hash: %lu\n", get_text(p),get_hash(p));
+       
+        next = get_next(p);
       
-      // Use alternate hashing algorithm on the symbol in the first table
-      unsigned int hashValue = new_hash(p,seed());
-      // Get a new index relative to the new table (can also change size)
-      int index = hash_validate(hashValue);
-     
-      set_hash(p,hashValue);
-      // Keep the shared bit in the Hashtable entry to indicate that this entry
-      // can't be deleted.   The shared bit is the LSB in the _next field so
-      // walking the hashtable past these entries requires
-      // BasicHashtableEntry::make_ptr() call.
-      bool keep_shared = is_shared(p);
-      unlink_entry(table,p);
-      add_from_string_obj(newtable,p);
-      if (keep_shared) {
-        set_shared(p); //don't need this if lookup is setting the entry to interned
-      }
-      p = next;
+        // Use alternate hashing algorithm on the symbol in the first table
+        unsigned long hashValue = new_hash(p,seed());
+        
+        // Get a new index relative to the new table (can also change size)
+        int index = hash_validate(hashValue);
+        
+        set_hash(p,hashValue);
+        //printf("String: %s Hash: %lu\n\n", get_text(p),new_hash(p,seed()));
+        //printf("String: %s Hash: %lu\n\n", get_text(p),get_hash(p));
+        // Keep the shared bit in the Hashtable entry to indicate that this entry
+        // can't be deleted.   The shared bit is the LSB in the _next field so
+        // walking the hashtable past these entries requires
+        // BasicHashtableEntry::make_ptr() call.
+        bool keep_shared = is_shared(p);
+        unlink_entry(table,p);
+        basic_add(newtable,p,index);
+        if (keep_shared){
+            set_shared(p);
+        }
+        //printf("String: %s Hash: %lu\n", get_text(p),get_hash(p));
+        p = next;
+        printf("entry count: %d\n", number_of_entries(newtable));
     }
   }
+  printf("ok\n\n");
   // give the new table the free list as well
   //new_table->copy_freelist(this);
-  //assert(new_table->number_of_entries() == saved_entry_count, "lost entry on dictionary copy?");
-
+  assert(number_of_entries(newtable) == saved_entry_count);
+ 
   // Destroy memory used by the buckets in the hashtable.  The memory
   // for the elements has been used in a new table and is not
   // destroyed.  The memory reuse will benefit resizing the SystemDictionary
@@ -310,6 +331,7 @@ struct String * bucket(struct Table * table, int index)
 {
     return *(table->table+index);
 }
+
 bool use_alt_hashing(){
     return _seed!=0;
 }

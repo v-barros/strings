@@ -41,7 +41,7 @@ unsigned long hash_gen(const char *str)
 //tbd
 unsigned long alt_hash(uint64_t seed, const char * str, unsigned short len)
 {
-    return hash_gen(str);
+    return hash_gen(str)+1;
 }
 
 //tbd

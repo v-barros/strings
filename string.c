@@ -52,7 +52,7 @@ struct String * new_string(const char * str)
     assert(is_ascii(str,str_len));
     assert(str_len<max_text_length);
 
-    struct String *new_string = create_string(str, str_len, hash_gen(str));
+    struct String *new_string = create_string(str, str_len, hash_string(str,str_len));
         
     return new_string;
 }
@@ -214,7 +214,7 @@ unsigned long new_hash(struct String * string, unsigned long seed)
     return alt_hash(seed,get_text(string),length(string));
 }
 
-unsigned long hash_string(struct String * string, int len)
+unsigned long hash_string(const char * str, int len)
 {
-    return use_alt_hashing() ? alt_hash(seed(),get_text(string),len) : hash_gen(get_text(string));
+    return use_alt_hashing() ? alt_hash(seed(),str,len) : hash_gen(str);
 }

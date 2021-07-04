@@ -29,9 +29,9 @@
 
 #ifndef STRINGTABLE_H_
 #define STRINGTABLE_H_
-#define TABLE_SIZE 3
-#define REHASH_MULTIPLE 60
-#define REHASH_COUNT 100 
+#define TABLE_SIZE 20
+#define REHASH_MULTIPLE 3
+#define REHASH_COUNT 10
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -48,7 +48,6 @@ struct Table{
 	int rehash_count;
 	struct String * table[TABLE_SIZE];
 	bool needs_rehashing;
-	bool alt_hashing;
 };
 extern const void * Table;
 
@@ -151,6 +150,9 @@ void set_next(struct String * string,struct String * next);
 
 struct String * get_next(struct String * string);
 
+/**
+ * Check if the string is on the first position of the bucket 'index'.
+ * */
 bool is_at(struct Table * table, int index, struct String * string);
 
 /**

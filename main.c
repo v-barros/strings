@@ -29,22 +29,35 @@
 #include "string.h"
 #include "stringtable.h"
 #include <stdio.h>
+//#define str_gen(x) 
 
+int to_ascii(int);
 
 int main(void)
-{
+{	
 	INIT_TABLE;
-	STRING string = LITERAL("myString"); 	 /*String str = "";*/
-	STRING string2 = LITERAL("myStr"); 	 /*String str = "";*/
-	STRING string3 = LITERAL("String"); 	 /*String str = "";*/
-	STRING string4 = LITERAL("my"); 	 /*String str = "";*/
-	STRING string5 = LITERAL("mySt"); 	 /*String str = "";*/
+	char str[21];
+	int i,j;
 
-	STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
+	/*STRING string = LITERAL("myString"); 	 /*String str = "";*/
+	//STRING string2 = LITERAL("myStr"); 	 /*String str = "";*/
+	//STRING string3 = LITERAL("String"); 	 /*String str = "";*/
+	//STRING string4 = LITERAL("my"); 	 /*String str = "";*/
+	//STRING string5 = LITERAL("mySt"); 	 /*String str = "";*/
+	//STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
+
+	for(i=0;i<59;i++){ 
+		for(j=0;j<20;j++){ 
+			str[j]= to_ascii(j*i+1);
+		} 
+		str[20]='\0';
+		LITERAL(str); 
+	}
 	
+
 	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string),ref_count(string1),string1,number_of_entries(table));
 
-	SET(string)(string1);					 /*string = string1*/
+//	SET(string)(string1);					 /*string = string1*/
 	
 	//STRING string2 = LITERAL("myString");
 
@@ -52,8 +65,12 @@ int main(void)
 
 
 	//SET(string2)(string1);	
-	printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string1),ref_count(string1),string1,number_of_entries(table));
+	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string1),ref_count(string1),string1,number_of_entries(table));
 
 	DEBUG_TABLE;
 	return 1;
+}
+
+int to_ascii(int n){
+	return (n%0x7E) > 0x5E ? n%0x7E : n%0x7E + 0x20;
 }
