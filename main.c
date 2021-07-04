@@ -29,30 +29,32 @@
 #include "string.h"
 #include "stringtable.h"
 #include <stdio.h>
-//#define str_gen(x) 
+#include <stdlib.h>
+#define str_gen(x) for(i=0;i<x;i++){ \
+		for(j=0;j<23;j++){ \
+			str[j]= to_ascii(j*i+1);\
+		} \
+		str[j]='\0';\
+		LITERAL(str); \
+	}\
 
 int to_ascii(int);
 
-int main(void)
+int main(int argc, char **argv)
 {	
+
 	INIT_TABLE;
-	char str[21];
-	int i,j;
-
-	/*STRING string = LITERAL("myString"); 	 /*String str = "";*/
-	//STRING string2 = LITERAL("myStr"); 	 /*String str = "";*/
-	//STRING string3 = LITERAL("String"); 	 /*String str = "";*/
-	//STRING string4 = LITERAL("my"); 	 /*String str = "";*/
-	//STRING string5 = LITERAL("mySt"); 	 /*String str = "";*/
+	char str[24];
+	int i,j,n;
+	n = (int)strtol(argv[1], NULL, 10);
+	STRING string = LITERAL("myString"); 	 /*String str = "";*/
+	STRING string2 = LITERAL("myStr"); 	 /*String str = "";*/
+	STRING string3 = LITERAL("String"); 	 /*String str = "";*/
+	STRING string4 = LITERAL("my"); 	 /*String str = "";*/
+	STRING string5 = LITERAL("mySt"); 	 /*String str = "";*/
 	//STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
-
-	for(i=0;i<59;i++){ 
-		for(j=0;j<20;j++){ 
-			str[j]= to_ascii(j*i+1);
-		} 
-		str[20]='\0';
-		LITERAL(str); 
-	}
+	str_gen(n)
+	
 	
 
 	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string),ref_count(string1),string1,number_of_entries(table));

@@ -29,9 +29,9 @@
 
 #ifndef STRINGTABLE_H_
 #define STRINGTABLE_H_
-#define TABLE_SIZE 20
-#define REHASH_MULTIPLE 3
-#define REHASH_COUNT 10
+#define TABLE_SIZE 50
+#define REHASH_MULTIPLE 2
+#define REHASH_COUNT 4
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>

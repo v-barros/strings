@@ -118,7 +118,6 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
     set_shared(new_string);
     basic_add(table,new_string,index);
     
-    printf("end of bucket, count: %d\n", count);
     if(needs_rehashing(table)){
         printf("needs_rehashing\n\n");
         rehash_table(table);
@@ -203,14 +202,25 @@ int table_size(struct Table *table)
 
 void debug_table(struct Table *table)
 {
-    printf("needs rehashing: %d\nnumber of entries: %d\nrehash count: %d\nrehash multiple: %d\ntable size: %d",
-    table->needs_rehashing,table->number_of_entries,table->rehash_count,table->rehash_multiple,table->table_size);
     int i = 0;
-    printf("\n");
+    struct String * string;
+
+    printf("\n\t\tDEBUG TABLE\nneeds rehashing: %d\nnumber of entries: %d\nrehash count: %d\nrehash multiple: %d\ntable size: %d\n\n",
+    table->needs_rehashing,table->number_of_entries,table->rehash_count,table->rehash_multiple,table->table_size);
+    
+    
+    for (i = 0; i < table_size(table); ++i) {
+        printf("%05d: {",i);
+        for (string = bucket(table,i); string != NULL; ) {
+            printf("\"%s\" , ",get_text(string));
+            string=get_next(string);
+        }
+        printf("%p}\n",string);
+    }/*
     while (i < table->table_size)
     {
         printf("0x%p ", *(table->table + i++));
-    }
+    }*/
     printf("\n");
 }
 
@@ -262,7 +272,6 @@ void rehash_table(struct Table *table)
 
     // Delete the table and buckets (entries are reused in new table).
     delete (*table->table);
-    printf("ok\n\n");
     *table->table = *newtable->table;
 
     table->needs_rehashing = false;
@@ -314,7 +323,6 @@ void move_to(struct Table * table, struct Table * newtable)
         printf("entry count: %d\n", number_of_entries(newtable));
     }
   }
-  printf("ok\n\n");
   // give the new table the free list as well
   //new_table->copy_freelist(this);
   assert(number_of_entries(newtable) == saved_entry_count);
