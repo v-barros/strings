@@ -30,43 +30,32 @@
 #include "stringtable.h"
 #include <stdio.h>
 #include <stdlib.h>
-#define str_gen(x) for(i=0;i<x;i++){ \
-		for(j=0;j<23;j++){ \
-			str[j]= to_ascii(j*i+1);\
-		} \
-		str[j]='\0';\
-		LITERAL(str); \
-	}\
+
 
 int to_ascii(int);
 
+void string_from_file(char file_name[25],char *str, int line);
+
+/* ./main <file containing strings to insert on the table> <number of strings to read from file and create> */
 int main(int argc, char **argv)
 {	
-
+	assert(argc==3);
+	
+	char *str = malloc(sizeof(char)*33);
+	int i;
+	unsigned int strings_to_read;
+	strings_to_read = (int)strtol(argv[2], NULL, 10);
+	
 	INIT_TABLE;
-	char str[24];
-	int i,j,n;
-	n = (int)strtol(argv[1], NULL, 10);
-	STRING string = LITERAL("myString"); 	 /*String str = "";*/
-	STRING string2 = LITERAL("myStr"); 	 /*String str = "";*/
-	STRING string3 = LITERAL("String"); 	 /*String str = "";*/
-	STRING string4 = LITERAL("my"); 	 /*String str = "";*/
-	STRING string5 = LITERAL("mySt"); 	 /*String str = "";*/
+
 	//STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
-	str_gen(n)
-	
 	
 
-	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string),ref_count(string1),string1,number_of_entries(table));
+	for(i=0;i<strings_to_read;i++){
+		string_from_file(argv[1],str,i);
+		literal(str);
+	}
 
-//	SET(string)(string1);					 /*string = string1*/
-	
-	//STRING string2 = LITERAL("myString");
-
-	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string2),ref_count(string2),string2,number_of_entries(table)); // new address, different than previous String string address,
-
-
-	//SET(string2)(string1);	
 	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string1),ref_count(string1),string1,number_of_entries(table));
 
 	DEBUG_TABLE;
@@ -75,4 +64,24 @@ int main(int argc, char **argv)
 
 int to_ascii(int n){
 	return (n%0x7E) > 0x5E ? n%0x7E : n%0x7E + 0x20;
+}
+
+void string_from_file(char file_name[25],char *str,int line)
+{
+	char ch,_str[31];
+	FILE *fp;
+	int i=-1,ln=0;
+
+	fp = fopen(file_name, "r"); // read mode
+
+	if (fp == NULL)
+	{
+		perror("Error while opening the file.\n");
+		exit(EXIT_FAILURE);
+	}
+	while (fscanf(fp,"%[^\n]\n",_str) !=EOF && (++i<line));
+	assert(i==line);
+	strcpy (str,_str);
+	fclose(fp);
+	
 }

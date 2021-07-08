@@ -29,7 +29,7 @@
  */
 #ifndef STRING_H_
 #define STRING_H_
-#define LITERAL(x) literal(table,x)
+#define literal(x) _literal(table,x)
 #define INIT_TABLE struct Table *table = new_table()
 #define NEW_STRING(x) new_string(x)
 #define STRING struct String *
@@ -100,7 +100,7 @@ extern const void * String;
 /**
  * equivalent to String var = "string";
  */
-struct String * literal(struct Table *table,const char * str);
+struct String * _literal(struct Table *table,const char * str);
 
 struct String * new_string(const char * str);
 

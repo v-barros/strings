@@ -33,7 +33,7 @@
 static const size_t _String = sizeof(struct String);
 const void * String = &_String;
 
-struct String * literal(struct Table *table,const char * str)
+struct String * _literal(struct Table *table,const char * str)
 {
     unsigned long str_len;
     assert(str && table);
