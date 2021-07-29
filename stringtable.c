@@ -38,6 +38,9 @@ const void *Table = &_Table;
 struct Table *new_table()
 {
     struct Table *table = alloc(Table);
+    size_t tableBytes = TABLE_SIZE * (sizeof(struct sstring *));
+    table->table = calloc(1,tableBytes);
+    assert(table->table);
     table->rehash_multiple = REHASH_MULTIPLE;
     table->rehash_count = REHASH_COUNT;
     table->table_size = TABLE_SIZE;
@@ -60,18 +63,18 @@ int hash_validate(unsigned long full_hash)
     return h;
 }
 
-struct String * make_ptr(struct String * next);
+struct sstring * make_ptr(struct sstring * next);
 
-struct String * make_ptr(struct String * next){
-    return (struct String*) ((uintptr_t) next & -2);
+struct sstring * make_ptr(struct sstring * next){
+    return (struct sstring*) ((uintptr_t) next & -2);
 }
 
-struct String *add_from_char_array(struct Table *table, const char *str, unsigned short str_len)
+struct sstring *add_from_char_array(struct Table *table, const char *str, unsigned short str_len)
 {
     unsigned long full_hash = hash_string(str,str_len);
     int index = hash_validate(full_hash);
-    struct String *new_string;
-
+    struct sstring *new_string;
+    
     if (is_empty_bucket(table, index))
     {
         new_string = create_string(str, str_len, full_hash);
@@ -79,14 +82,15 @@ struct String *add_from_char_array(struct Table *table, const char *str, unsigne
         set_shared(new_string);
         return new_string; 
     }
+    printf("trying to insert \"%s\" at index %d\n",str,index);
     return lookup(table, index, str, str_len, full_hash);
 }
 
-struct String *add_from_string_obj(struct Table *table, struct String *string)
+struct sstring *add_from_string_obj(struct Table *table, struct sstring *string)
 {
     unsigned long full_hash = get_hash(string);
     int index = hash_validate(full_hash);
-    struct String *new_string;
+    struct sstring *new_string;
 
     if (is_empty_bucket(table, index))
     {
@@ -98,9 +102,9 @@ struct String *add_from_string_obj(struct Table *table, struct String *string)
     return lookup(table, index, get_text(string), length(string), full_hash);
 }
 
-struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash)
+struct sstring *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash)
 {
-    struct String *string = *(table->table + index);
+    struct sstring *string = *(table->table + index);
     int count=0;
     do
     {
@@ -114,26 +118,28 @@ struct String *lookup(struct Table *table, int index, const char *name, unsigned
     } while (string);
     /*reached end of bucket*/
 
-    struct String *new_string = create_string(name, name_len, full_hash);
+    struct sstring *new_string = create_string(name, name_len, full_hash);
     set_shared(new_string);
     basic_add(table,new_string,index);
-    
+    printf("end of bucket\n");
     if(needs_rehashing(table)){
         printf("needs_rehashing\n\n");
         rehash_table(table);
-    }
         
+    }
+    
     if(count>=table->rehash_count&&!needs_rehashing(table)){
-        printf("count->rehash_count count %d num of entries %d\n\n",count,number_of_entries(table));
+        printf("count >= rehash_count count %d at index %d num of entries %d\n\n",count,index,number_of_entries(table));
         table->needs_rehashing = check_rehash_table(table,count);
+        printf("needs rehashing? %d\n",needs_rehashing(table));
     }
         
     return new_string;
 }
 
-void delete_entry(struct Table * table, struct String* stringToDelete)
+void delete_entry(struct Table * table, struct sstring* stringToDelete)
 {   
-    struct String * stringCheck;
+    struct sstring * stringCheck;
 
     int index = hash_validate(get_hash(stringToDelete));
 
@@ -156,25 +162,25 @@ void delete_entry(struct Table * table, struct String* stringToDelete)
     delete_str(stringToDelete);
 }
 
-void set_next(struct String * string,struct String * next)
+void set_next(struct sstring * string,struct sstring * next)
 {
     string->next=next;
 }
 
-struct String * get_next(struct String * string)
+struct sstring * get_next(struct sstring * string)
 {
     return make_ptr(string->next);
 }
 
-bool is_at(struct Table * table, int index, struct String * string)
+bool is_at(struct Table * table, int index, struct sstring * string)
 {
     return *(table->table+index)==string;
 }
 
-struct String * find_previous(struct Table *table, int index, const char *name, unsigned short name_len)
+struct sstring * find_previous(struct Table *table, int index, const char *name, unsigned short name_len)
 {
-    struct String *string = *(table->table + index);
-    struct String *previous = string;
+    struct sstring *string = *(table->table + index);
+    struct sstring *previous = string;
     
     do
     {
@@ -203,7 +209,7 @@ int table_size(struct Table *table)
 void debug_table(struct Table *table)
 {
     int i = 0;
-    struct String * string;
+    struct sstring * string;
 
     printf("\n\t\tDEBUG TABLE\nneeds rehashing: %d\nnumber of entries: %d\nrehash count: %d\nrehash multiple: %d\ntable size: %d\n\n",
     table->needs_rehashing,table->number_of_entries,table->rehash_count,table->rehash_multiple,table->table_size);
@@ -239,12 +245,12 @@ int number_of_entries(struct Table *table)
     return table->number_of_entries;
 }
 
-void set_shared(struct String *string)
+void set_shared(struct sstring *string)
 {
-    string->next = (struct String *) ((uintptr_t) string->next | 1);
+    string->next = (struct sstring *) ((uintptr_t) string->next | 1);
 }
 
-bool is_shared(struct String *string)
+bool is_shared(struct sstring *string)
 {
     return ((uintptr_t)string->next & 1) !=0;
 }
@@ -267,15 +273,23 @@ bool check_rehash_table(struct Table * table, int count){
 void rehash_table(struct Table *table)
 {
     struct Table *newtable = new_table();
+    printf("\nbefore rehashing, table %p: \n",table->table);
     debug_table(table);
     move_to(table, newtable);
-
+    printf("Moved String: %p %p\n", get_text(bucket(newtable,1)),bucket(newtable,1) );
+    
     // Delete the table and buckets (entries are reused in new table).
-    delete (*table->table);
-    *table->table = *newtable->table;
+    delete (table->table);
+    table->table = newtable->table;
 
     table->needs_rehashing = false;
     table->number_of_entries = number_of_entries(newtable);
+    
+    
+    printf("Moved String: %p %p\n", get_text(bucket(newtable,1)),bucket(newtable,1) );
+    printf("\nafter rehashing, table %p: \n",table->table);
+    debug_table(table);
+    delete(newtable);
     // Don't check if we need rehashing until the table gets unbalanced again.
     // Then rehash with a new global seed.
     //_needs_rehashing = false;
@@ -289,13 +303,13 @@ void move_to(struct Table * table, struct Table * newtable)
   assert(seed() != 0);
   int i;
   int saved_entry_count = number_of_entries(table);
-  struct String * p, *next;
+  struct sstring * p, *next;
   // Iterate through the table and create a new entry for the new table
 
   printf("saved entry count: %d\n", saved_entry_count);
   for (i = 0; i < table_size(newtable); ++i) {
     for (p = bucket(table,i); p != NULL; ) {
-       // printf("String: %s Hash: %lu\n", get_text(p),get_hash(p));
+        
        
         next = get_next(p);
       
@@ -318,11 +332,14 @@ void move_to(struct Table * table, struct Table * newtable)
         if (keep_shared){
             set_shared(p);
         }
-        //printf("String: %s Hash: %lu\n", get_text(p),get_hash(p));
+       // printf("Moving String: %s\n", get_text(bucket(newtable,index)));
+        //printf("To index: %d\n", index);
         p = next;
-        printf("entry count: %d\n", number_of_entries(newtable));
+        //printf("entry count: %d\n", number_of_entries(newtable));
     }
   }
+
+  printf("Moved String: %s\n", get_text(bucket(newtable,1)));
   // give the new table the free list as well
   //new_table->copy_freelist(this);
   assert(number_of_entries(newtable) == saved_entry_count);
@@ -335,7 +352,7 @@ void move_to(struct Table * table, struct Table * newtable)
 
 }
 
-struct String * bucket(struct Table * table, int index)
+struct sstring * bucket(struct Table * table, int index)
 {
     return *(table->table+index);
 }
@@ -344,13 +361,13 @@ bool use_alt_hashing(){
     return _seed!=0;
 }
 
-void unlink_entry(struct Table * table, struct String * string)
+void unlink_entry(struct Table * table, struct sstring * string)
 {
     string->next=NULL;
     dec_num_of_entries(table);
 }
 
-void basic_add(struct Table * table, struct String * string, int index){
+void basic_add(struct Table * table, struct sstring * string, int index){
     set_next(string,*(table->table+index));
     *(table->table+index) = string;
     inc_num_of_entries(table);

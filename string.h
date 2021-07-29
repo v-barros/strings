@@ -30,13 +30,13 @@
 #ifndef STRING_H_
 #define STRING_H_
 #define literal(x) _literal(table,x)
-#define INIT_TABLE struct Table *table = new_table()
-#define NEW_STRING(x) new_string(x)
-#define STRING struct String *
-#define SET(x) drop(table,x);x=TO
+#define init_table struct Table *table = new_table()
+#define new_String(x) _new_string(x)
+#define String struct sstring *
+#define set(x) drop(table,x);x=TO
 #define TO(y) copy(y)
-#define INTERN(x) intern(table,x)
-#define DEBUG_TABLE debug_table(table)
+#define intern(x) _intern(table,x)
+#define dump_table debug_table(table)
 
 #include <assert.h>
 #include <stdlib.h>
@@ -46,10 +46,10 @@
 #include "stringtable.h"
 #include "memory.h"
 
-struct String{
+struct sstring{
 	const char * text;
 	unsigned long hash; 
-	struct String * next;
+	struct sstring * next;
 	int ref_count;
 	unsigned short length; 
 };
@@ -95,33 +95,33 @@ struct String{
 
 static unsigned short max_text_length = (1 << 16)-1;/* 65535 */
 
-extern const void * String;
+extern const void * _String;
 
 /**
  * equivalent to String var = "string";
  */
-struct String * _literal(struct Table *table,const char * str);
+struct sstring * _literal(struct Table *table,const char * str);
 
-struct String * new_string(const char * str);
+struct sstring * _new_string(const char * str);
 
-struct String * intern(struct Table * table,struct String * string);
+struct sstring * _intern(struct Table * table,struct sstring * string);
 
-const char * get_text(struct String * string);
+const char * get_text(struct sstring * string);
 
-void delete_shared(struct Table * table, struct String * string);
+void delete_shared(struct Table * table, struct sstring * string);
 
-void delete_not_shared(struct String * string);
+void delete_not_shared(struct sstring * string);
 
-void delete_str(struct String * string);
+void delete_str(struct sstring * string);
 
-bool equals_str(struct String * a,struct String * b);
+bool equals_str(struct sstring * a,struct sstring * b);
 
-bool equals_char_l(struct String * a, const char * b, unsigned short len_b);
+bool equals_char_l(struct sstring * a, const char * b, unsigned short len_b);
 
 bool equals(const char * a, unsigned short len_a,
  			const char * b, unsigned short len_b);
 
-struct String * create_string(const char * str, unsigned short str_len, unsigned long hash);
+struct sstring * create_string(const char * str, unsigned short str_len, unsigned long hash);
 
 /**
  * True if every char is a printable ascii char. 
@@ -137,7 +137,7 @@ bool is_ascii(const char * str, int len);
  * a =  b;
  *   ^
  * */
-void set_text(struct String * string, const char * text,unsigned short text_len);
+void set_text(struct sstring * string, const char * text,unsigned short text_len);
 
 /**
  * Used to assign a String to another instance of String, ex:
@@ -147,24 +147,24 @@ void set_text(struct String * string, const char * text,unsigned short text_len)
  * name = nickName;
  * 		^ instead of y=x, this would be SET(y)(x)
  * */
-struct String * copy(struct String * src);
+struct sstring * copy(struct sstring * src);
 
-void drop(struct Table * table,struct String * str);
+void drop(struct Table * table,struct sstring * str);
 
-void dec_ref_count(struct String * string);
+void dec_ref_count(struct sstring * string);
 
-void inc_ref_count(struct String * string);
+void inc_ref_count(struct sstring * string);
 
-int ref_count(struct String * string);
+int ref_count(struct sstring * string);
 
-unsigned short length(struct String * string);
+unsigned short length(struct sstring * string);
 
-void set_hash(struct String * string, unsigned long hash);
+void set_hash(struct sstring * string, unsigned long hash);
 
-unsigned long get_hash(struct String * string);
+unsigned long get_hash(struct sstring * string);
 
 // For new table alternate hashing
-unsigned long new_hash(struct String * string, unsigned long seed);
+unsigned long new_hash(struct sstring * string, unsigned long seed);
 
 /* Pick hash algorithm */
 unsigned long hash_string(const char * str, int len);

@@ -53,7 +53,8 @@
         "stdexcept": "c",
         "cstdbool": "c",
         "memory.h": "c",
-        "assert.h": "c"
+        "assert.h": "c",
+        "stdbool.h": "c"
     },
     "files.watcherExclude": {
         "**/target": true

@@ -30,10 +30,10 @@
 #include "string.h"
 #include "hashing.h"
 
-static const size_t _String = sizeof(struct String);
-const void * String = &_String;
+static const size_t String_size = sizeof(struct sstring);
+const void * _String = &String_size;
 
-struct String * _literal(struct Table *table,const char * str)
+struct sstring * _literal(struct Table *table,const char * str)
 {
     unsigned long str_len;
     assert(str && table);
@@ -44,7 +44,7 @@ struct String * _literal(struct Table *table,const char * str)
     return add_from_char_array(table, str,str_len);    
 }
 
-struct String * new_string(const char * str)
+struct sstring * _new_string(const char * str)
 {
     unsigned long str_len;
     assert(str);
@@ -52,12 +52,12 @@ struct String * new_string(const char * str)
     assert(is_ascii(str,str_len));
     assert(str_len<max_text_length);
 
-    struct String *new_string = create_string(str, str_len, hash_string(str,str_len));
+    struct sstring *new_string = create_string(str, str_len, hash_string(str,str_len));
         
     return new_string;
 }
 
-struct String *intern(struct Table *table, struct String *string)
+struct sstring *_intern(struct Table *table, struct sstring *string)
 {
     assert(string && table);
     if (!is_shared(string))
@@ -76,26 +76,26 @@ bool is_ascii(const char *str, int len)
     return true;
 }
 
-void set_text(struct String *string, const char *text, unsigned short text_len)
+void set_text(struct sstring *string, const char *text, unsigned short text_len)
 {
     assert(!string->text); /*immutable, right?*/
     string->text = text;
     string->length = text_len;
 }
 
-const char *get_text(struct String *string)
+const char *get_text(struct sstring *string)
 {
     assert(string);
     return string->text;
 }
 
-unsigned short length(struct String *string)
+unsigned short length(struct sstring *string)
 {
     assert(string);
     return string->length;
 }
 
-bool equals_str(struct String *a, struct String *b)
+bool equals_str(struct sstring *a, struct sstring *b)
 {
     if (a == b)
         return true;
@@ -104,7 +104,7 @@ bool equals_str(struct String *a, struct String *b)
                   get_text(b), length(b));
 }
 
-bool equals_char(struct String *a, const char *b)
+bool equals_char(struct sstring *a, const char *b)
 {
     assert(a);
     assert(b);
@@ -112,7 +112,7 @@ bool equals_char(struct String *a, const char *b)
                   b, strlen(b));
 }
 
-bool equals_char_l(struct String *a, const char *b, unsigned short len_b)
+bool equals_char_l(struct sstring *a, const char *b, unsigned short len_b)
 {
     return equals(get_text(a), length(a),
                   b, len_b);
@@ -134,9 +134,9 @@ bool equals(const char *a, unsigned short len_a,
     return true;
 }
 
-struct String *create_string(const char *str, unsigned short str_len, unsigned long hash)
+struct sstring *create_string(const char *str, unsigned short str_len, unsigned long hash)
 {
-    struct String *string = alloc(String);
+    struct sstring *string = alloc(_String);
     char *text = (char *)malloc(str_len + 1);
     strcpy(text, str);
     set_text(string, text, str_len);
@@ -145,40 +145,40 @@ struct String *create_string(const char *str, unsigned short str_len, unsigned l
     return string;
 }
 
-struct String * copy(struct String *src)
+struct sstring * copy(struct sstring *src)
 {
     assert(src);
     inc_ref_count(src);
     return src;
 }
 
-int ref_count(struct String *string)
+int ref_count(struct sstring *string)
 {
     return string->ref_count;
 }
 
-void set_hash(struct String *string, unsigned long hash)
+void set_hash(struct sstring *string, unsigned long hash)
 {
     string->hash = hash;
 }
 
-unsigned long get_hash(struct String *string)
+unsigned long get_hash(struct sstring *string)
 {
     return string->hash;
 }
 
-void dec_ref_count(struct String *string)
+void dec_ref_count(struct sstring *string)
 {
     assert(string->ref_count - 1 >= 0);
     string->ref_count--;
 }
 
-void inc_ref_count(struct String *string)
+void inc_ref_count(struct sstring *string)
 {
     string->ref_count++;
 }
 
-void drop(struct Table * table,struct String * string)
+void drop(struct Table * table,struct sstring * string)
 {
     assert(string);
     if(!is_shared(string))
@@ -187,7 +187,7 @@ void drop(struct Table * table,struct String * string)
         delete_shared(table,string);
 }
 
-void delete_shared(struct Table * table, struct String * string)
+void delete_shared(struct Table * table, struct sstring * string)
 {
     if(ref_count(string)>1)
         dec_ref_count(string);
@@ -195,7 +195,7 @@ void delete_shared(struct Table * table, struct String * string)
         delete_entry(table,string);
 }
 
-void delete_not_shared(struct String *string)
+void delete_not_shared(struct sstring *string)
 {
     if (ref_count(string) > 1)
         dec_ref_count(string);
@@ -203,13 +203,13 @@ void delete_not_shared(struct String *string)
         delete_str(string);   
 }
 
-void delete_str(struct String * string)
+void delete_str(struct sstring * string)
 {
     delete ((void *)string->text);
     delete (string);
 }
 
-unsigned long new_hash(struct String * string, unsigned long seed)
+unsigned long new_hash(struct sstring * string, unsigned long seed)
 {
     return alt_hash(seed,get_text(string),length(string));
 }

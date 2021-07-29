@@ -45,8 +45,8 @@ int main(int argc, char **argv)
 	int i;
 	unsigned int strings_to_read;
 	strings_to_read = (int)strtol(argv[2], NULL, 10);
+	init_table;
 	
-	INIT_TABLE;
 
 	//STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
 	
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
 	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string1),ref_count(string1),string1,number_of_entries(table));
 
-	DEBUG_TABLE;
+	dump_table;
 	return 1;
 }
 

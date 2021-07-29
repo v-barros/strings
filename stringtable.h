@@ -46,7 +46,7 @@ struct Table{
 	int number_of_entries;
 	int rehash_multiple;
 	int rehash_count;
-	struct String * table[TABLE_SIZE];
+	struct sstring ** table;
 	bool needs_rehashing;
 };
 extern const void * Table;
@@ -62,7 +62,7 @@ struct Table * new_table();
  *  to reduce object creation.
  * 	Here, we receive a shared string, remove it from the table and then the memory is freed
  * */
-void delete_entry(struct Table * table, struct String* string);
+void delete_entry(struct Table * table, struct sstring* string);
 
 /**
  * Given a char array and it's length, try to insert a new structure on the table
@@ -70,7 +70,7 @@ void delete_entry(struct Table * table, struct String* string);
  * a pointer to the interned String.
  * If it doesnt, insert the string on the table and returns a pointer to the the interned String.
  * */
-struct String * add_from_char_array(struct Table * table, const char * str,unsigned short str_len );
+struct sstring * add_from_char_array(struct Table * table, const char * str,unsigned short str_len );
 
 /**
  * Given a String, try to insert a new structure on the table
@@ -78,7 +78,7 @@ struct String * add_from_char_array(struct Table * table, const char * str,unsig
  * a pointer to the interned String.
  * If it doesnt, insert the string on the table and returns a pointer to the the interned String.
  * */
-struct String * add_from_string_obj(struct Table * table, struct String * string);
+struct sstring * add_from_string_obj(struct Table * table, struct sstring * string);
 /**
  * Return the number of entries on the table(number of active keys)
  * */
@@ -89,7 +89,7 @@ int number_of_entries(struct Table * table);
  * Checks wheter a String exists or not on a bucket, if it does, then returns its pointer,
  * else, NULL.
  * */
-struct String *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash);
+struct sstring *lookup(struct Table *table, int index, const char *name, unsigned short name_len, unsigned long full_hash);
 
 /**
  * Return the table size(number of buckets)
@@ -102,7 +102,7 @@ int table_size(struct Table * table);
  * Checks wheter str exists or not on the bucket, if it does, then returns the previous String on the bucket,
  * else, returns the last node found on the bucket.
  * */
-struct String * find_previous(struct Table *table, int index, const char *name, unsigned short name_len);
+struct sstring * find_previous(struct Table *table, int index, const char *name, unsigned short name_len);
 
 /**
  *  Prints address of buckets from 0 to tableSize, but it doesnt loop through Buckets
@@ -136,9 +136,9 @@ bool check_rehash_table(struct Table * table, int count);
  * */
 void rehash_table(struct Table * table);
 
-void set_shared(struct String * string );
+void set_shared(struct sstring * string );
 
-bool is_shared(struct String * string);
+bool is_shared(struct sstring * string);
 
 bool is_empty_bucket(struct Table * table, int index);
 
@@ -146,14 +146,14 @@ void inc_num_of_entries(struct Table * table);
 
 void dec_num_of_entries(struct Table * table);
 
-void set_next(struct String * string,struct String * next);
+void set_next(struct sstring * string,struct sstring * next);
 
-struct String * get_next(struct String * string);
+struct sstring * get_next(struct sstring * string);
 
 /**
  * Check if the string is on the first position of the bucket 'index'.
  * */
-bool is_at(struct Table * table, int index, struct String * string);
+bool is_at(struct Table * table, int index, struct sstring * string);
 
 /**
  * Create a new table and using alternate hash code, populate the new table
@@ -162,13 +162,13 @@ bool is_at(struct Table * table, int index, struct String * string);
  * */
 void move_to(struct Table *table, struct Table* newtable);
 
-struct String * bucket(struct Table * table, int index);
+struct sstring * bucket(struct Table * table, int index);
 
 bool use_alt_hashing();
 
-void unlink_entry(struct Table * table, struct String * string);
+void unlink_entry(struct Table * table, struct sstring * string);
 
-void basic_add(struct Table * table, struct String * string, int index);
+void basic_add(struct Table * table, struct sstring * string, int index);
 
 unsigned long seed();
 
