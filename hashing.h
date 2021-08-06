@@ -30,14 +30,26 @@
 #ifndef _HASHING_
 #define _HASHING_
 #include <inttypes.h>
+#include <stdlib.h>
 
  /* DJB2. See: https://theartincode.stanis.me/008-djb2/ */
 unsigned long hash_gen(const char *str);
 
 /* Check: https://github.com/veorq/SipHash/ and https://www.aumasson.jp/siphash/siphash.pdf */
-unsigned long alt_hash(uint64_t seed, const char * str, unsigned short len);
+unsigned long alt_hash(uint64_t seed, const int8_t * str, unsigned short len);
 
 /* Seed value used for each alternative hash calculated. */
 unsigned long compute_seed();
+
+static void halfsiphash_rounds(uint32_t v[4], int rounds);
+
+static void halfsiphash_init32(uint32_t v[4], uint64_t seed);
+
+static void halfsiphash_adddata(uint32_t v[4], uint32_t newdata, int rounds);
+
+uint32_t halfsiphash_finish32(uint32_t v[4], int rounds);
+
+// utility function copied from java/lang/Integer
+static uint32_t Integer_rotateLeft(uint32_t i, int distance);
 
 #endif /*_HASHIGN_*/

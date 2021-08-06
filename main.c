@@ -47,18 +47,14 @@ int main(int argc, char **argv)
 	strings_to_read = (int)strtol(argv[2], NULL, 10);
 	init_table;
 	
-
-	//STRING string1 = NEW_STRING("myString1");/*String str = new String("");*/
 	
 
 	for(i=0;i<strings_to_read;i++){
 		string_from_file(argv[1],str,i);
 		literal(str);
 	}
-
-	//printf("\ntext: %s reference count: %d address: %p number of entries: %d\n",get_text(string1),ref_count(string1),string1,number_of_entries(table));
-
 	dump_table;
+	
 	return 1;
 }
 
@@ -68,7 +64,7 @@ int to_ascii(int n){
 
 void string_from_file(char file_name[25],char *str,int line)
 {
-	char ch,_str[31];
+	char _str[31];
 	FILE *fp;
 	int i=-1,ln=0;
 

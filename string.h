@@ -57,8 +57,7 @@ struct sstring{
 /**
  * Struct to represent a String.
  * 
- * For a programmer using Java_lang_string, there are 2 main ops for Strings:
- * 
+ *  
  * 1) String creation, wich can be done,in Java, by 2 different ways:
  * 
  *	String Object: when using the constructor -> new String(), usually,
@@ -67,7 +66,7 @@ struct sstring{
  *	String Literal: using double commas -> String str = ""; 
  *  
  *  In general, we can define this as bellow.
- *  String object = Strings calculated in run time
+ *  String object = Strings calculated in run time.
  *  String literal = Strings defined in source code.
  * 
  *  Only String Literals are automatically interned, i.e., the JVM 
@@ -75,8 +74,8 @@ struct sstring{
  *  trying to create has already been interned, then the local variable 
  *  will have a reference to this pre-existing string.
  *  Example:
- * 		String a = "a";
- *  	String b = "a";
+ * 		String a = "a"; // run a lookup and finds nothing, intern "a"
+ *  	String b = "a"; // run a lookup and find a existing string "a", return pre-existing "a"
  * 	Both variables are pointing to the same object, so there is just one
  *  instance of "a".
  * 
@@ -89,6 +88,7 @@ struct sstring{
  * 	In this case, there are two different instances of String, where
  *  a has a reference to an interned string on string table
  *  b holds a reference to an string located anywhere inside the heap.
+ * 
  * 
  * 
  * */
@@ -163,7 +163,7 @@ void set_hash(struct sstring * string, unsigned long hash);
 
 unsigned long get_hash(struct sstring * string);
 
-// For new table alternate hashing
+/* For new table alternate hashing */
 unsigned long new_hash(struct sstring * string, unsigned long seed);
 
 /* Pick hash algorithm */
