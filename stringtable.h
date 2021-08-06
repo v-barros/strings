@@ -29,9 +29,9 @@
 
 #ifndef STRINGTABLE_H_
 #define STRINGTABLE_H_
-#define TABLE_SIZE 50
-#define REHASH_MULTIPLE 2
-#define REHASH_COUNT 4
+#define TABLE_SIZE 655  /*65536 is used as standard value in hotspot.*/
+#define REHASH_MULTIPLE 60
+#define REHASH_COUNT 100
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
